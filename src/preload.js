@@ -1,10 +1,9 @@
-const {contextBridge,ipcRenderer}=require('electron');
-contextBridge.exposeInMainWorld('tarkov',{
-  pickFolder:()=>ipcRenderer.invoke('pick-folder'),
-  getFolder:()=>ipcRenderer.invoke('get-folder'),
-  readLatest:()=>ipcRenderer.invoke('read-latest'),
-  openOverlay:()=>ipcRenderer.invoke('open-overlay'),
-  closeOverlay:()=>ipcRenderer.invoke('close-overlay'),
-  getPosition:()=>ipcRenderer.invoke('get-position'),
-  onPosition:(cb)=>ipcRenderer.on('position-update',(_,d)=>cb(d))
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('tarkov', {
+  pickFolder: () => ipcRenderer.invoke('pick-folder'),
+  getFolder: () => ipcRenderer.invoke('get-folder'),
+  getLatest: () => ipcRenderer.invoke('get-latest'),
+  readImage: (filePath) => ipcRenderer.invoke('read-image', filePath),
+  onNewScreenshot: (cb) => ipcRenderer.on('new-screenshot', (_, data) => cb(data))
 });
