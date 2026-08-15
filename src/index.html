@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: file:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
-<title>Tarkov HUD PT 0.4</title>
+<title>Tarkov HUD PT 0.5</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#070a0c;color:#d8d4c8;font:14px Arial,sans-serif;overflow:hidden}
 header{height:62px;border-bottom:1px solid #3a3327;background:#0d1113;display:flex;align-items:center;gap:12px;padding:0 16px}
@@ -29,7 +29,8 @@ select,button{background:#12181b;color:#ddd;border:1px solid #4b412e;padding:8px
 <div class="logo">TARKOV HUD PT</div>
 <select id="map"></select>
 <button id="folder">📁 Medal</button>
-<button id="latest">📸 Ler último</button>
+<button id="eftfolder">🎯 Pasta EFT</button>
+<button id="latest">📸 Ler Medal</button>
 <button id="center">⌖ Centrar</button>
 <div class="status" id="status">● A MONITORIZAR</div>
 </header>
@@ -38,7 +39,7 @@ select,button{background:#12181b;color:#ddd;border:1px solid #4b412e;padding:8px
   <div class="terrain"></div><div class="gridlabel tl">N</div><div class="gridlabel tr">E</div><div class="gridlabel bl">S</div><div class="gridlabel br">W</div>
   <div class="player" id="player"></div>
   <div class="hud">
-    POSIÇÃO <b id="pos">A aguardar localização visual</b><br>
+    POSIÇÃO <b id="pos">A aguardar screenshot EFT</b><br>
     RUMO <b id="bearing">---</b><br>
     <span class="small">ÚLTIMA CAPTURA: <span id="updated">--:--:--</span></span>
   </div>
@@ -51,15 +52,16 @@ select,button{background:#12181b;color:#ddd;border:1px solid #4b412e;padding:8px
 <div class="progress"><div class="bar" id="bar"></div></div>
 </div>
 
-<div class="panel"><div class="title">LOCALIZAÇÃO VISUAL</div>
+<div class="panel"><div class="title">GPS / TRACKING</div>
 <div class="small">
-A captura é analisada como imagem. Esta versão <b>não inventa coordenadas a partir do nome do ficheiro</b>.
-Para obter uma posição absoluta, o motor precisa de referências visuais do mapa.
+Para GPS preciso, usamos o <b>nome das screenshots nativas do EFT</b>, que contém X/Y/Z e orientação. O Medal continua a servir para os teus prints/preview.
 </div>
-<div style="margin-top:9px">
-<button id="calibrate" style="width:100%">🎯 Calibrar ponto inicial</button>
-</div>
-<div class="small" style="margin-top:7px" id="calStatus">Sem calibração. Depois de calibrares, as capturas seguintes podem ser usadas para estimar movimento visual.</div>
+<div class="row"><span>GPS</span><span class="value" id="gpsState">A AGUARDAR EFT</span></div>
+<div class="row"><span>X</span><span class="value" id="x">---</span></div>
+<div class="row"><span>Y</span><span class="value" id="y">---</span></div>
+<div class="row"><span>Z</span><span class="value" id="z">---</span></div>
+<div class="row"><span>Direção</span><span class="value" id="yaw">---</span></div>
+<div class="small" style="margin-top:7px" id="eftPath"></div>
 </div>
 
 <div class="panel"><div class="title">CAMADAS</div>
@@ -78,68 +80,22 @@ Para obter uma posição absoluta, o motor precisa de referências visuais do ma
 </div>
 
 <div class="panel"><div class="title">NOTA</div>
-<div class="small">A tua captura Medal é 2048×1152 e não contém coordenadas EXIF. O HUD usa apenas dados externos e imagens, sem leitura da memória do Tarkov.</div></div>
+<div class="small">O Medal guarda uma imagem normal e pode não preservar o nome GPS do EFT. Por isso a app observa também a pasta nativa de screenshots do EFT. Não lê a memória do jogo.</div></div>
 </aside>
 </div>
 
 <script>
 const maps=["Customs","Factory","Interchange","Labs","Lighthouse","Reserve","Shoreline","Streets of Tarkov","Woods","Ground Zero","Terminal","Labyrinth"];
-const sel=document.getElementById('map');
-maps.forEach(m=>{let o=document.createElement('option');o.textContent=m;sel.appendChild(o)});
-let lastCapture=null, calibrated=false;
-
+const sel=document.getElementById('map'); maps.forEach(m=>{const o=document.createElement('option');o.textContent=m;sel.appendChild(o)});
 function setStatus(t){document.getElementById('status').textContent=t}
-function showCapture(d){
-  lastCapture=d;
-  document.getElementById('captureState').textContent='NOVA CAPTURA DETETADA';
-  document.getElementById('folderPath').textContent=d.fullPath;
-  document.getElementById('updated').textContent=new Date(d.mtimeMs||Date.now()).toLocaleTimeString('pt-PT');
-  // Electron renderer cannot directly load arbitrary file URLs under a strict CSP reliably.
-  // Convert the image through a hidden file reader exposed by main in a future iteration.
-  // For now, show a visual status and use the file path as the tracking input.
-  window.tarkov.readImage(d.fullPath).then(src=>{
-    if(src) document.getElementById('preview').src=src;
-  });
-  document.getElementById('bar').style.width='35%';
-  setStatus('● CAPTURA DETETADA');
-  if(calibrated) estimateVisualMotion();
-}
-
-async function readLatest(){
-  const d=await window.tarkov.getLatest();
-  if(d) showCapture(d);
-  else setStatus('● NENHUMA IMAGEM ENCONTRADA');
-}
-document.getElementById('folder').onclick=async()=>{
- const p=await window.tarkov.pickFolder();
- document.getElementById('folderPath').textContent=p;
- setStatus('● A MONITORIZAR · '+p);
-};
-document.getElementById('latest').onclick=readLatest;
+function showMedal(d){document.getElementById('captureState').textContent='NOVA CAPTURA MEDAL';document.getElementById('folderPath').textContent=d.fullPath;document.getElementById('updated').textContent=new Date(d.mtimeMs||Date.now()).toLocaleTimeString('pt-PT');window.tarkov.readImage(d.fullPath).then(src=>{if(src)document.getElementById('preview').src=src});document.getElementById('bar').style.width='100%';setStatus('● MEDAL OK · A AGUARDAR GPS EFT')}
+function showEft(d){document.getElementById('eftPath').textContent=d.file.fullPath; if(!d.parsed){document.getElementById('gpsState').textContent='SEM COORDENADAS';setStatus('● SCREENSHOT EFT SEM FORMATO GPS');return;} const p=d.parsed;document.getElementById('gpsState').textContent='ATIVO';document.getElementById('x').textContent=p.x.toFixed(2);document.getElementById('y').textContent=p.y.toFixed(2);document.getElementById('z').textContent=p.z.toFixed(2);const yaw=Math.atan2(2*(p.qw*p.qy+p.qx*p.qz),1-2*(p.qy*p.qy+p.qz*p.qz))*180/Math.PI;document.getElementById('yaw').textContent=((yaw%360)+360)%360+'°';document.getElementById('pos').textContent=`X ${p.x.toFixed(2)} · Y ${p.y.toFixed(2)} · Z ${p.z.toFixed(2)}`;document.getElementById('bearing').textContent=document.getElementById('yaw').textContent;document.getElementById('player').style.display='block';setStatus('● GPS EFT ATIVO')}
+async function init(){const f=await window.tarkov.getFolders();document.getElementById('folderPath').textContent=f.medal;document.getElementById('eftPath').textContent=f.eft;const m=await window.tarkov.getLatestMedal();if(m)showMedal(m);const e=await window.tarkov.getLatestEft();if(e)showEft(e)}
+document.getElementById('folder').onclick=async()=>{const p=await window.tarkov.pickMedalFolder();document.getElementById('folderPath').textContent=p};
+document.getElementById('eftfolder').onclick=async()=>{const p=await window.tarkov.pickEftFolder();document.getElementById('eftPath').textContent=p;setStatus('● A MONITORIZAR EFT + MEDAL')};
+document.getElementById('latest').onclick=async()=>{const m=await window.tarkov.getLatestMedal();if(m)showMedal(m)};
 document.getElementById('center').onclick=()=>{document.getElementById('player').style.left='52%';document.getElementById('player').style.top='48%'};
-
-document.getElementById('calibrate').onclick=()=>{
- calibrated=true;
- document.getElementById('player').style.display='block';
- document.getElementById('player').style.left='52%';
- document.getElementById('player').style.top='48%';
- document.getElementById('calStatus').textContent='Ponto inicial definido no centro do mapa. Capturas seguintes serão tratadas como movimento visual relativo.';
- document.getElementById('bar').style.width='100%';
-};
-
-function estimateVisualMotion(){
-  // Deliberately conservative: without a reference-frame dataset, do not fabricate
-  // an absolute EFT coordinate. The UI records that a new frame arrived.
-  document.getElementById('pos').textContent='LOCALIZAÇÃO VISUAL EM ANÁLISE';
-  document.getElementById('bearing').textContent='---';
-}
-
-window.tarkov.onNewScreenshot(showCapture);
-window.tarkov.getFolder().then(p=>{
- document.getElementById('folderPath').textContent=p;
- setStatus('● A MONITORIZAR · '+p);
-});
-readLatest();
+window.tarkov.onNewMedal(showMedal); window.tarkov.onNewEft(showEft); init();
 </script>
 </body>
 </html>
