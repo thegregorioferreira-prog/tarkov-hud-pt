@@ -1,7 +1,7 @@
 {
   "name": "tarkov-hud-pt",
-  "version": "0.5.0",
-  "description": "Tarkov HUD PT - tracking por screenshots EFT e Medal",
+  "version": "0.6.0",
+  "description": "Tarkov HUD/Map companion em português",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",

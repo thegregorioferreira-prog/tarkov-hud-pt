@@ -1,12 +1,11 @@
-# Tarkov HUD PT v0.5.0
+# Tarkov HUD PT v0.6.0
 
-Companion app pessoal para Escape from Tarkov.
+Versão de transição para o mapa real + leitura das screenshots nativas do EFT.
 
-## Tracking
-- Medal: `C:\Medal\Screenshots\Escape From Tarkov`
-- EFT GPS: por defeito `Documentos\Escape from Tarkov\Screenshots`
-- A app observa as duas pastas.
-- Screenshots nativas do EFT podem conter X/Y/Z e orientação no nome do ficheiro; esses dados são usados para o GPS.
-- Screenshots do Medal são usadas para preview/captura, mas podem não preservar as coordenadas do nome original.
+- Mapa real carregado do tarkov.dev.
+- Monitoriza a pasta de screenshots do EFT.
+- Lê o formato de nome de screenshot que contém posição e quaternion.
+- Mostra X/Y/Z e rumo.
+- Medal pode continuar a ser usado para clips; para GPS é necessária a screenshot nativa do EFT.
 
-Não há leitura de memória/injeção no jogo.
+Uso pessoal. Não afiliado à Battlestate Games.
