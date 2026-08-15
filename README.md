@@ -1,18 +1,15 @@
-# Tarkov HUD PT 0.9.0
+# Tarkov HUD PT v1.2.0
 
-Companion pessoal em português. Esta versão usa screenshots nativas do EFT para obter X/Y/Z e rotação e envia esses dados para o mapa real do tarkov.dev através do mecanismo de remote control documentado pelo TarkovMonitor.
+- GPS por screenshots nativas do EFT.
+- Mantém no máximo 7 screenshots.
+- Não envia F9 automaticamente.
+- O botão **Abrir mapa real** abre o mapa tarkov.dev numa janela própria da aplicação.
+- Seleciona o mapa no menu antes de abrir o mapa real.
 
-## Utilização
-1. Abra a app e clique em **🗺️ Mapa real**.
-2. No tarkov.dev, clique em **Click to connect** e copie o **ID for remote control**.
-3. Cole o ID em **MAPA REAL / REMOTE** e clique **Ligar**.
-4. Selecione o mapa correto.
-5. Faça screenshots com a tecla nativa do EFT (no seu caso, F9).
-6. A app lê a screenshot, obtém X/Y/Z + direção e envia a posição para o mapa.
-7. A app mantém no máximo 7 screenshots.
+## Teste
 
-A app não envia teclas automaticamente para o Tarkov nesta versão.
-
-
-## v1.1.0
-The real tarkov.dev map is embedded directly in the Electron window using a WebView, instead of BrowserView.
+1. Instalar a versão 1.2.0.
+2. Abrir a HUD.
+3. Selecionar Customs.
+4. Clicar em **Abrir mapa real**.
+5. Só depois, se quiseres testar GPS, entrar numa raid e usar F9 no Tarkov.

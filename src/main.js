@@ -4,8 +4,7 @@ const fs = require('fs');
 const WebSocket = require('ws');
 
 let win;
-let mapWin;
-let mapView = null;
+let mapWin = null;
 let watcherTimer = null;
 let screenshotDir;
 let remoteId = '';
@@ -34,7 +33,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1500, height: 920, minWidth: 1100, minHeight: 700,
     backgroundColor: '#080b0d',
-    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, webviewTag: true }
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false }
   });
   win.loadFile(path.join(__dirname, 'index.html'));
   win.on('closed', () => { win = null; closeRealMap(); if (mapWin && !mapWin.isDestroyed()) mapWin.close(); });
@@ -42,16 +41,39 @@ function createWindow() {
 
 function openRealMap(mapName) {
   const slug = MAPS[mapName] || 'customs';
-  if (!win || win.isDestroyed()) return false;
-  win.webContents.send('show-real-map', `https://tarkov.dev/map/${slug}`);
+  const url = `https://tarkov.dev/map/${slug}`;
+
+  if (mapWin && !mapWin.isDestroyed()) {
+    mapWin.loadURL(url);
+    mapWin.focus();
+    return true;
+  }
+
+  mapWin = new BrowserWindow({
+    parent: win,
+    width: 1400,
+    height: 900,
+    minWidth: 900,
+    minHeight: 650,
+    backgroundColor: '#111',
+    title: `Tarkov HUD PT — Mapa ${mapName}`,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true
+    }
+  });
+
+  mapWin.loadURL(url);
+  mapWin.on('closed', () => { mapWin = null; });
   return true;
 }
 
 function closeRealMap() {
-  if (win && !win.isDestroyed() && mapView) {
-    try { win.removeBrowserView(mapView); } catch {}
+  if (mapWin && !mapWin.isDestroyed()) {
+    mapWin.close();
   }
-  mapView = null;
+  mapWin = null;
 }
 
 function listScreenshots() {
@@ -161,13 +183,9 @@ app.whenReady().then(() => {
       last=files[0].x;
       const p=parseEftScreenshot(files[0].x);
       if(p){
-        p.mapName = win.webContents.executeJavaScript('document.getElementById("map")?.value || "Customs"').catch(()=> 'Customs');
-        // Resolve the Promise without blocking the file watcher.
-        Promise.resolve(p.mapName).then(mapName => {
-          p.mapName = mapName || 'Customs';
-          sendPlayerPosition(p);
-          win.webContents.send('new-screenshot',{file:files[0].x,fullPath:path.join(screenshotDir,files[0].x),position:p});
-        });
+        p.mapName = 'Customs';
+        sendPlayerPosition(p);
+        win.webContents.send('new-screenshot',{file:files[0].x,fullPath:path.join(screenshotDir,files[0].x),position:p});
       } else {
         win.webContents.send('new-screenshot',{file:files[0].x,fullPath:path.join(screenshotDir,files[0].x)});
       }
