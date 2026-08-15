@@ -29,12 +29,12 @@ radial-gradient(circle at 50% 45%,#20282a,#0b0f11 70%);background-size:48px 48px
 <div class="logo">TARKOV HUD PT</div>
 <select id="map"></select>
 <button id="folder">📁 Pasta de screenshots</button>
-<button id="realmap">🗺️ Mapa real</button><button id="connect">🔗 Ligar mapa</button><button id="cleanup">🧹 Manter 7</button>
+<button id="realmap">🗺️ Abrir mapa real</button><button id="connect">🔗 Ligar mapa</button><button id="cleanup">🧹 Manter 7</button>
 <div class="status" id="status">● A MONITORIZAR</div>
 </header>
 <div class="layout">
 <main class="map" id="mapview">
-  <div class="realhint"><b>MAPA REAL</b><br>Carrega em <b>🗺️ Mapa real</b> para abrir o mapa oficial comunitário do tarkov.dev.
+  <div class="realhint"><b>MAPA REAL</b><br>Carrega em <b>🗺️ Abrir mapa real</b> para mostrar o mapa real dentro da própria aplicação.
   <br><span>Depois de ligares o mapa, cada screenshot nativa do EFT envia X/Y/Z + direção para o marcador no mapa.</span></div>
   <div class="hud">POSIÇÃO <b id="pos">X 000.0 · Y 000.0 · Z 000.0</b><br>RUMO <b id="bearing">000°</b><br>ATUALIZAÇÃO <span id="updated">--:--:--</span></div>
 </main>
@@ -54,7 +54,7 @@ radial-gradient(circle at 50% 45%,#20282a,#0b0f11 70%);background-size:48px 48px
 <div class="team"><span class="dot offline"></span><span><b>Ghost</b><br><span class="small">offline</span></span></div>
 <button style="width:100%;margin-top:8px">+ Criar código de squad</button>
 </div>
-<div class="panel"><div class="title">MAPA REAL / REMOTE</div><div class="small">O tarkov.dev fornece o mapa real e recebe a posição através do seu canal de remote control.</div><div style="display:flex;gap:6px;margin-top:8px"><input id="remoteId" placeholder="ID do remote control" style="flex:1;background:#12181b;color:#ddd;border:1px solid #4b412e;padding:8px;border-radius:4px"><button id="saveRemote">Ligar</button></div><div class="small" style="margin-top:7px">No mapa real, clica em “Click to connect” e copia o ID mostrado.</div></div><div class="panel"><div class="title">LEGENDA</div><div class="small">A posição é lida do nome da screenshot nativa do EFT. “Auto F9” envia F9 para a aplicação em primeiro plano; use-o apenas com o Tarkov focado. São mantidas no máximo 7 screenshots. O Medal continua disponível para clips, mas não fornece as coordenadas.</div></div>
+<div class="panel"><div class="title">MAPA REAL / REMOTE</div><div class="small">O mapa real é mostrado dentro da aplicação. O GPS continua a ser lido das screenshots nativas do EFT.</div><div style="display:flex;gap:6px;margin-top:8px"><input id="remoteId" placeholder="ID do remote control" style="flex:1;background:#12181b;color:#ddd;border:1px solid #4b412e;padding:8px;border-radius:4px"><button id="saveRemote">Ligar</button></div><div class="small" style="margin-top:7px">O campo Remote é opcional e pode ser usado para sincronização externa.</div></div><div class="panel"><div class="title">LEGENDA</div><div class="small">A posição é lida do nome da screenshot nativa do EFT. “Auto F9” envia F9 para a aplicação em primeiro plano; use-o apenas com o Tarkov focado. São mantidas no máximo 7 screenshots. O Medal continua disponível para clips, mas não fornece as coordenadas.</div></div>
 </aside>
 </div>
 <script>

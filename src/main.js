@@ -1,10 +1,11 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, BrowserView, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const WebSocket = require('ws');
 
 let win;
 let mapWin;
+let mapView = null;
 let watcherTimer = null;
 let screenshotDir;
 let remoteId = '';
@@ -36,25 +37,35 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false }
   });
   win.loadFile(path.join(__dirname, 'index.html'));
-  win.on('closed', () => { win = null; if (mapWin && !mapWin.isDestroyed()) mapWin.close(); });
+  win.on('closed', () => { win = null; closeRealMap(); if (mapWin && !mapWin.isDestroyed()) mapWin.close(); });
 }
 
 function openRealMap(mapName) {
   const slug = MAPS[mapName] || 'customs';
   const url = `https://tarkov.dev/map/${slug}`;
-  if (mapWin && !mapWin.isDestroyed()) {
-    mapWin.loadURL(url);
-    mapWin.focus();
-    return;
+  if (!win || win.isDestroyed()) return false;
+  if (!mapView) {
+    mapView = new BrowserView({
+      webPreferences: { contextIsolation: true, nodeIntegration: false }
+    });
+    win.setBrowserView(mapView);
+    mapView.setBounds({ x: 0, y: 122, width: 1500, height: 798 });
+    mapView.setAutoResize({ width: true, height: true });
+    mapView.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
   }
-  mapWin = new BrowserWindow({
-    width: 1600, height: 1000, minWidth: 1000, minHeight: 700,
-    backgroundColor: '#101314',
-    title: `Tarkov HUD PT — Mapa ${mapName}`,
-    webPreferences: { contextIsolation: true, nodeIntegration: false }
+  mapView.webContents.loadURL(url, { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0 Safari/537.36' });
+  mapView.webContents.once('did-finish-load', () => {
+    if (win && !win.isDestroyed()) win.webContents.send('remote-status', `MAPA ${mapName.toUpperCase()} ABERTO`);
   });
-  mapWin.loadURL(url);
-  mapWin.on('closed', () => { mapWin = null; });
+  return true;
+}
+
+function closeRealMap() {
+  if (win && !win.isDestroyed() && mapView) {
+    try { win.removeBrowserView(mapView); } catch {}
+  }
+  if (mapView) { try { mapView.webContents.destroy(); } catch {} }
+  mapView = null;
 }
 
 function listScreenshots() {
