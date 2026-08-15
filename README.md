@@ -1,15 +1,13 @@
-# Tarkov HUD PT v1.2.0
+# Tarkov HUD PT v1.3.0
 
-- GPS por screenshots nativas do EFT.
-- Mantém no máximo 7 screenshots.
-- Não envia F9 automaticamente.
-- O botão **Abrir mapa real** abre o mapa tarkov.dev numa janela própria da aplicação.
-- Seleciona o mapa no menu antes de abrir o mapa real.
+Versão estável do protótipo:
 
-## Teste
+- menu de mapas funcional;
+- Customs e restantes mapas selecionáveis;
+- botão Mapa Real abre o mapa tarkov.dev numa janela própria do Electron;
+- GPS por screenshots nativas do EFT;
+- não envia F9 automaticamente;
+- mantém no máximo 7 screenshots.
 
-1. Instalar a versão 1.2.0.
-2. Abrir a HUD.
-3. Selecionar Customs.
-4. Clicar em **Abrir mapa real**.
-5. Só depois, se quiseres testar GPS, entrar numa raid e usar F9 no Tarkov.
+## Instalação
+No GitHub, substitui os ficheiros pelo conteúdo deste ZIP, faz Commit e executa o workflow `Build Windows`.
