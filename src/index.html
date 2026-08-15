@@ -2,121 +2,92 @@
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://raw.githubusercontent.com data:; connect-src 'self' https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
 <title>Tarkov HUD PT</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#070a0c;color:#ddd8cc;font:14px Arial,sans-serif;overflow:hidden}
-header{height:60px;background:#0c1012;border-bottom:1px solid #3b3428;display:flex;align-items:center;gap:10px;padding:0 14px}
-.logo{font-weight:900;letter-spacing:2px;color:#e0a343;margin-right:8px}.status{margin-left:auto;font:12px monospace;color:#8da18e}
-select,button{background:#12181a;color:#ddd;border:1px solid #4b422f;border-radius:4px;padding:8px 11px}button:hover{border-color:#e0a343;cursor:pointer}
-.layout{height:calc(100vh - 60px);display:grid;grid-template-columns:1fr 320px}.mapwrap{position:relative;overflow:hidden;background:#090d0f}
-.mapcanvas{position:absolute;inset:0;overflow:hidden;background:#101415;cursor:grab}.mapcanvas.drag{cursor:grabbing}
-.mapimg{position:absolute;left:50%;top:50%;transform-origin:center center;max-width:none;user-select:none;pointer-events:none;filter:brightness(.72) contrast(1.08) saturate(.75)}
-.markers{position:absolute;inset:0;pointer-events:none}.marker{position:absolute;transform:translate(-50%,-50%);font:11px Arial;color:#fff;text-shadow:0 1px 3px #000;pointer-events:auto;white-space:nowrap}
-.dot{width:13px;height:13px;border-radius:50%;border:2px solid #fff;background:#56b7d8;box-shadow:0 0 12px #56b7d8;margin:auto}.extract .dot{background:#57c78d;box-shadow:0 0 12px #57c78d}.boss .dot{background:#e05656;box-shadow:0 0 12px #e05656}
-.player{position:absolute;width:22px;height:22px;border:3px solid #f0b34e;border-radius:50%;box-shadow:0 0 0 6px #f0b34e22,0 0 20px #e0a343;transform:translate(-50%,-50%);z-index:10;display:none}.player:after{content:"";position:absolute;left:6px;top:-17px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:14px solid #f0b34e}
-.hud{position:absolute;left:14px;bottom:14px;background:#06090bdc;border:1px solid #3b3428;padding:10px 12px;font:12px monospace;z-index:20}.hud b{color:#e0a343}.sidebar{background:#0c1012;border-left:1px solid #3b3428;padding:13px;overflow:auto}.panel{border:1px solid #393229;background:#0a0e10;padding:11px;margin-bottom:10px}.title{color:#e0a343;font:11px monospace;letter-spacing:1.5px;margin-bottom:9px}.row{display:flex;justify-content:space-between;margin:6px 0}.value{font-family:monospace}.check{display:block;margin:7px 0}.small{font-size:11px;color:#90958f}.team{display:flex;gap:8px;align-items:center;margin:7px 0}.teamdot{width:10px;height:10px;border-radius:50%;background:#63c6a2}.teamdot.off{background:#666}
-#loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:30;background:#090d0fcc;padding:16px;border:1px solid #4a402f;display:none}
+*{box-sizing:border-box}body{margin:0;background:#070a0c;color:#d8d4c8;font:14px Arial, sans-serif;overflow:hidden}
+header{height:62px;border-bottom:1px solid #3a3327;background:#0d1113;display:flex;align-items:center;gap:18px;padding:0 18px}
+.logo{font-weight:900;letter-spacing:2px;color:#d59b3a}.status{margin-left:auto;font-family:monospace;color:#8ea08b}
+select,button{background:#12181b;color:#ddd;border:1px solid #4b412e;padding:9px 12px;border-radius:4px}
+button:hover{border-color:#d59b3a}.layout{display:grid;grid-template-columns:1fr 310px;height:calc(100vh - 62px)}
+.map{position:relative;overflow:hidden;background:
+linear-gradient(rgba(213,155,58,.08) 1px,transparent 1px),
+linear-gradient(90deg,rgba(213,155,58,.08) 1px,transparent 1px),
+radial-gradient(circle at 50% 45%,#20282a,#0b0f11 70%);background-size:48px 48px,48px 48px,100% 100%}
+.map:before{content:"";position:absolute;inset:8%;border:1px solid #514a3d;box-shadow:0 0 70px #000 inset}
+.terrain{position:absolute;left:15%;top:20%;width:68%;height:55%;border:2px solid #6d6759;transform:rotate(-7deg);opacity:.55}
+.terrain:before,.terrain:after{content:"";position:absolute;border:1px solid #6d6759}.terrain:before{left:12%;top:18%;width:35%;height:55%}.terrain:after{right:8%;bottom:12%;width:28%;height:30%}
+.gridlabel{position:absolute;color:#766f61;font:11px monospace}.tl{top:12px;left:15px}.tr{top:12px;right:15px}.bl{bottom:12px;left:15px}.br{bottom:12px;right:15px}
+.player{position:absolute;left:52%;top:48%;width:22px;height:22px;border:3px solid #f0b24b;border-radius:50%;box-shadow:0 0 0 6px rgba(240,178,75,.14),0 0 20px #d59b3a;transform:translate(-50%,-50%)}
+.player:after{content:"";position:absolute;left:7px;top:-18px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:15px solid #f0b24b}
+.ping{position:absolute;width:14px;height:14px;border-radius:50%;background:#55b7d9;border:2px solid #d7f5ff;box-shadow:0 0 15px #55b7d9;transform:translate(-50%,-50%)}
+.sidebar{background:#0d1113;border-left:1px solid #3a3327;padding:16px;overflow:auto}.panel{border:1px solid #3a3327;margin-bottom:12px;padding:12px;background:#0a0e10}.title{font:11px monospace;letter-spacing:1.5px;color:#d59b3a;margin-bottom:10px}.row{display:flex;justify-content:space-between;margin:7px 0}.value{font-family:monospace;color:#e6e0d2}.small{font-size:11px;color:#8d918b}.team{display:flex;gap:8px;align-items:center;margin:8px 0}.dot{width:10px;height:10px;border-radius:50%;background:#63c7a4}.offline{background:#6c7370}.hud{position:absolute;left:18px;bottom:18px;background:rgba(5,8,9,.86);border:1px solid #3a3327;padding:10px 14px;font-family:monospace;min-width:260px}.hud b{color:#d59b3a}
 </style>
 </head>
 <body>
 <header>
-<div class="logo">TARKOV HUD PT <span style="font-size:9px;color:#777">v2</span></div>
+<div class="logo">TARKOV HUD PT</div>
 <select id="map"></select>
-<button id="overlay">⛶ HUD SOBRE O JOGO</button>
-<button id="center">⌖ JOGADOR</button>
-<button id="reset">↺</button>
-<div id="status" class="status">● ONLINE · DADOS COMUNITÁRIOS</div>
+<button id="folder">📁 Pasta de screenshots</button>
+<button id="center">⌖ Centrar jogador</button><button id="latest">↻ Ler último</button><button id="overlay">▣ Abrir HUD</button>
+<div class="status" id="status">● A MONITORIZAR</div>
 </header>
 <div class="layout">
-<div class="mapwrap">
-<div id="loading">A carregar mapa…</div>
-<div id="canvas" class="mapcanvas">
-<img id="mapimg" class="mapimg">
-<div id="markers" class="markers"></div><div id="player" class="player"></div>
-</div>
-<div class="hud">MAPA <b id="maplabel">Customs</b> · TRACKING <b id="track">AGUARDANDO SCREENSHOT</b><br>POS <b id="pos">—</b> · RUMO <b id="bearing">—</b> · <span id="time">--:--:--</span></div>
-</div>
+<main class="map" id="mapview">
+  <div class="terrain"></div><div class="gridlabel tl">N 00.00</div><div class="gridlabel tr">E 00.00</div>
+  <div class="gridlabel bl">S 00.00</div><div class="gridlabel br">W 00.00</div>
+  <div class="player" id="player"></div>
+  <div class="hud">POSIÇÃO <b id="pos">X 000.0 · Y 000.0 · Z 000.0</b><br>RUMO <b id="bearing">000°</b><br>ATUALIZAÇÃO <span id="updated">--:--:--</span></div>
+</main>
 <aside class="sidebar">
+<div class="panel"><div class="title">MAPA</div><div class="row"><span>Localização</span><span class="value" id="mapname">Customs</span></div><div class="row"><span>Estado</span><span class="value">AO VIVO</span></div></div>
 <div class="panel"><div class="title">CAMADAS</div>
-<label class="check"><input id="ex" type="checkbox" checked> 🚪 Extrações</label>
-<label class="check"><input id="boss" type="checkbox" checked> ☠️ Bosses</label>
-<label class="check"><input id="spawns" type="checkbox"> 👤 Spawns</label>
-<label class="check"><input id="quests" type="checkbox"> 🎯 Quests</label>
-<label class="check"><input id="hazards" type="checkbox"> 💥 Perigos</label>
+<label><input type="checkbox" checked> Extrações</label><br>
+<label><input type="checkbox" checked> Spawn</label><br>
+<label><input type="checkbox" checked> Bosses</label><br>
+<label><input type="checkbox"> Missões</label><br>
+<label><input type="checkbox"> Perigos</label><br>
+<label><input type="checkbox" checked> Squad</label>
 </div>
 <div class="panel"><div class="title">SQUAD</div>
-<div class="team"><span class="teamdot"></span><div><b>Tu</b><div class="small">tracking local</div></div></div>
-<div class="team"><span class="teamdot off"></span><div><b>Squad</b><div class="small">modo online — servidor por ligar</div></div></div>
-<button style="width:100%" onclick="alert('O modo squad online será ligado numa próxima versão com servidor de sincronização.')">+ CRIAR SQUAD</button>
+<div class="team"><span class="dot"></span><span><b>Tu</b><br><span class="small">posição sincronizada</span></span></div>
+<div class="team"><span class="dot"></span><span><b>Rato</b><br><span class="small">online · 18 m</span></span></div>
+<div class="team"><span class="dot offline"></span><span><b>Ghost</b><br><span class="small">offline</span></span></div>
+<button style="width:100%;margin-top:8px">+ Criar código de squad</button>
 </div>
-<div class="panel"><div class="title">TRACKING</div>
-<div class="small">A app monitoriza screenshots do EFT e usa os dados públicos de mapas para posicionar o jogador. Não lê a memória do jogo.</div>
-</div>
-<div class="panel"><div class="title">MAPA</div><div class="small" id="mapinfo">Mapa carregado da base comunitária.</div></div>
+<div class="panel"><div class="title">LEGENDA</div><div class="small">O marcador dourado representa o jogador. A posição é obtida através dos screenshots do Tarkov, sem leitura da memória do jogo.</div></div>
 </aside>
 </div>
-<script>
-const RAW='https://raw.githubusercontent.com/sayser/TarkovTracker/master/';
-const maps={
-customs:{name:'Customs',file:'Customs.svg',bounds:[[698,-307],[-372,237]],rot:180,transform:[.239,168.65,.239,136.35]},
-factory:{name:'Factory',file:'Factory.svg',bounds:[[77,-64.5],[-65.5,67.4]],rot:90,transform:[1.629,119.9,1.629,139.3]},
-woods:{name:'Woods',file:'Woods.svg',bounds:[[646,-914],[-761,442]],rot:180,transform:[.1855,112.95,.1855,167.85]},
-shoreline:{name:'Shoreline',file:'Shoreline.svg',bounds:[[504,-415],[-1056,618]],rot:180,transform:[.16,83.2,.16,111.1]},
-interchange:{name:'Interchange',file:'Interchange.svg',bounds:[[598,-442],[-433,426]],rot:180,transform:[.265,150.6,.265,134.6]},
-lab:{name:'The Lab',file:'Labs.svg',bounds:[[-80,-477],[-287,-193]],rot:270,transform:[.575,281.2,.575,193.7]},
-reserve:{name:'Reserve',file:'Reserve.svg',bounds:[[289,-293],[-303,244]],rot:180,transform:[.395,122,.395,137.65]},
-lighthouse:{name:'Lighthouse',file:'Lighthouse.svg',bounds:[[515,-998],[-545,725]],rot:180,transform:[.2,0,.2,0]},
-streets:{name:'Streets of Tarkov',file:'StreetsOfTarkov.svg',bounds:[[323,-295],[-280,532]],rot:180,transform:[.38,0,.38,0]},
-groundzero:{name:'Ground Zero',file:'GroundZero.svg',bounds:[[249,-124],[-99,364]],rot:180,transform:[.524,167.3,.524,65.1]},
-terminal:{name:'Terminal',file:'Terminal.svg',bounds:[[-768,440],[-1512,1346]],rot:180,transform:[.20,0,.20,0]},
-labyrinth:{name:'The Labyrinth',file:'Labyrinth.svg',bounds:[[-52,-37],[53,76]],rot:270,transform:[2.115,85.5,2.115,128]}
-};
-const sel=document.getElementById('map'); Object.entries(maps).forEach(([id,m])=>{let o=document.createElement('option');o.value=id;o.textContent=m.name;sel.appendChild(o)});
-const canvas=document.getElementById('canvas'), img=document.getElementById('mapimg'), marks=document.getElementById('markers'), player=document.getElementById('player');
-let zoom=.8, ox=0, oy=0, current='customs', extractData=null, state={map:'customs',x:null,y:null,z:null,b:0};
 
-function setStatus(t){document.getElementById('status').textContent=t}
-function project(m,x,z){
-  const b=m.bounds, xMin=b[1][0], xMax=b[0][0], zMin=b[0][1], zMax=b[1][1];
-  const px=(x-xMin)/(xMax-xMin), py=(z-zMin)/(zMax-zMin);
-  return {x:Math.max(0,Math.min(1,px))*canvas.clientWidth, y:Math.max(0,Math.min(1,py))*canvas.clientHeight};
+<script>
+const maps=["Customs","Factory","Interchange","Labs","Lighthouse","Reserve","Shoreline","Streets of Tarkov","Woods","Ground Zero","Terminal","Labyrinth"];
+const sel=document.getElementById('map');
+maps.forEach(m=>{const o=document.createElement('option');o.textContent=m;sel.appendChild(o)});
+sel.onchange=()=>document.getElementById('mapname').textContent=sel.value;
+
+const statusEl=document.getElementById('status');
+function render(p){
+  if(!p) return;
+  document.getElementById('pos').textContent=`X ${p.x.toFixed(1)} · Y ${p.y.toFixed(1)} · Z ${p.z.toFixed(1)}`;
+  document.getElementById('bearing').textContent=`${(((p.bearing%360)+360)%360).toFixed(0)}°`;
+  document.getElementById('updated').textContent=new Date(p.time||Date.now()).toLocaleTimeString('pt-PT');
+  // Visual projection. Exact map transform is deliberately isolated so that
+  // per-map transforms can be added without changing the screenshot tracker.
+  const px=50 + Math.max(-42,Math.min(42,p.x/20));
+  const py=50 - Math.max(-38,Math.min(38,p.z/20));
+  document.getElementById('player').style.left=px+'%';
+  document.getElementById('player').style.top=py+'%';
+  statusEl.textContent='● POSIÇÃO ATUALIZADA';
 }
-function updateMarkers(){
-  marks.innerHTML='';
-  if(!extractData) return;
-  const m=maps[current], list=extractData.filter(e=>e.map===m.name || e.map.toLowerCase()===m.name.toLowerCase());
-  list.forEach(e=>{ if(!document.getElementById('ex').checked)return; const p=project(m,e.x,e.z); let d=document.createElement('div');d.className='marker extract';d.style.left=p.x+'px';d.style.top=p.y+'px';d.innerHTML='<div class="dot"></div><span>'+e.name+'</span>';marks.appendChild(d)});
-}
-async function loadData(){
-  try{
-    const r=await fetch(RAW+'Config/tarkov_extracts_raw.json'); const j=await r.json();
-    extractData=[]; (j.data?.maps||[]).forEach(mp=>(mp.extracts||[]).forEach(e=>extractData.push({map:mp.name,name:e.name,x:e.position?.x||0,z:e.position?.z||0,faction:e.faction||''})));
-  }catch(e){setStatus('● MAPAS OK · DADOS OFFLINE')}
-}
-function loadMap(){
-  current=sel.value; const m=maps[current]; document.getElementById('maplabel').textContent=m.name;
-  document.getElementById('mapinfo').textContent='Mapa SVG real · dados comunitários · '+m.name;
-  img.onload=()=>{zoom=.82;ox=0;oy=0;apply();updateMarkers();};
-  img.src=RAW+'Maps/'+m.file; setStatus('● A CARREGAR · '+m.name);
-}
-function apply(){img.style.transform=`translate(calc(-50% + ${ox}px),calc(-50% + ${oy}px)) scale(${zoom})`;marks.style.transform=`translate(${ox}px,${oy}px)`;player.style.transform=`translate(calc(-50% + ${ox}px),calc(-50% + ${oy}px)) rotate(${state.b||0}deg)`;}
-function placePlayer(){
-  if(state.x==null)return; const p=project(maps[current],state.x,state.z); player.style.left=p.x+'px';player.style.top=p.y+'px';player.style.display='block';
-  document.getElementById('pos').textContent=`X ${state.x.toFixed(1)} · Y ${state.y.toFixed(1)} · Z ${state.z.toFixed(1)}`;document.getElementById('bearing').textContent=Math.round((state.b+360)%360)+'°';document.getElementById('track').textContent='AO VIVO';document.getElementById('time').textContent=new Date().toLocaleTimeString('pt-PT');apply();window.tarkov.syncState(state);
-}
-sel.onchange=()=>loadMap();
-document.getElementById('center').onclick=()=>{if(state.x!=null){const p=project(maps[current],state.x,state.z);ox=canvas.clientWidth/2-p.x;oy=canvas.clientHeight/2-p.y;apply()}};
-document.getElementById('reset').onclick=()=>{zoom=.82;ox=0;oy=0;apply()};
+document.getElementById('folder').onclick=async()=>{const p=await window.tarkov.pickFolder();statusEl.textContent='● A MONITORIZAR · '+p};
+document.getElementById('latest').onclick=async()=>{
+  const r=await window.tarkov.readLatest();
+  if(r.ok) render(r); else statusEl.textContent='⚠ '+r.reason;
+};
 document.getElementById('overlay').onclick=()=>window.tarkov.openOverlay();
-['ex','boss','spawns','quests','hazards'].forEach(id=>document.getElementById(id).onchange=updateMarkers);
-let dragging=false,sx=0,sy=0;
-canvas.onmousedown=e=>{dragging=true;sx=e.clientX;sy=e.clientY;canvas.classList.add('drag')};
-window.onmouseup=()=>{dragging=false;canvas.classList.remove('drag')};
-window.onmousemove=e=>{if(!dragging)return;ox+=e.clientX-sx;oy+=e.clientY-sy;sx=e.clientX;sy=e.clientY;apply()};
-canvas.onwheel=e=>{e.preventDefault();zoom=Math.max(.25,Math.min(4,zoom*(e.deltaY<0?1.12:.89)));apply()};
-window.tarkov.onSyncState(s=>{state=s;if(s.map===current)placePlayer()});
-loadData().then(loadMap);
+document.getElementById('center').onclick=()=>{document.getElementById('player').style.left='50%';document.getElementById('player').style.top='50%'};
+window.tarkov.getFolder().then(p=>statusEl.textContent='● A MONITORIZAR · '+p);
+window.tarkov.getPosition().then(render);
+window.tarkov.onPosition(render);
 </script>
-</body>
-</html>
+</body></html>

@@ -1,7 +1,7 @@
 {
   "name": "tarkov-hud-pt",
-  "version": "0.2.0",
-  "description": "Tarkov HUD PT v2 — mapas reais, extrações, tracking e overlay",
+  "version": "0.3.0",
+  "description": "Tarkov HUD/Map companion em português",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
