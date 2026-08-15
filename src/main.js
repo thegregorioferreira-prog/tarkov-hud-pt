@@ -34,7 +34,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1500, height: 920, minWidth: 1100, minHeight: 700,
     backgroundColor: '#080b0d',
-    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false }
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, webviewTag: true }
   });
   win.loadFile(path.join(__dirname, 'index.html'));
   win.on('closed', () => { win = null; closeRealMap(); if (mapWin && !mapWin.isDestroyed()) mapWin.close(); });
@@ -42,21 +42,8 @@ function createWindow() {
 
 function openRealMap(mapName) {
   const slug = MAPS[mapName] || 'customs';
-  const url = `https://tarkov.dev/map/${slug}`;
   if (!win || win.isDestroyed()) return false;
-  if (!mapView) {
-    mapView = new BrowserView({
-      webPreferences: { contextIsolation: true, nodeIntegration: false }
-    });
-    win.setBrowserView(mapView);
-    mapView.setBounds({ x: 0, y: 122, width: 1500, height: 798 });
-    mapView.setAutoResize({ width: true, height: true });
-    mapView.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
-  }
-  mapView.webContents.loadURL(url, { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/136.0 Safari/537.36' });
-  mapView.webContents.once('did-finish-load', () => {
-    if (win && !win.isDestroyed()) win.webContents.send('remote-status', `MAPA ${mapName.toUpperCase()} ABERTO`);
-  });
+  win.webContents.send('show-real-map', `https://tarkov.dev/map/${slug}`);
   return true;
 }
 
@@ -64,7 +51,6 @@ function closeRealMap() {
   if (win && !win.isDestroyed() && mapView) {
     try { win.removeBrowserView(mapView); } catch {}
   }
-  if (mapView) { try { mapView.webContents.destroy(); } catch {} }
   mapView = null;
 }
 

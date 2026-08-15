@@ -14,7 +14,7 @@ button:hover{border-color:#d59b3a}.layout{display:grid;grid-template-columns:1fr
 linear-gradient(rgba(213,155,58,.08) 1px,transparent 1px),
 linear-gradient(90deg,rgba(213,155,58,.08) 1px,transparent 1px),
 radial-gradient(circle at 50% 45%,#20282a,#0b0f11 70%);background-size:48px 48px,48px 48px,100% 100%}
-.map:before{content:"";position:absolute;inset:8%;border:1px solid #514a3d;box-shadow:0 0 70px #000 inset}.realhint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:420px;padding:22px;background:rgba(5,8,9,.92);border:1px solid #4b412e;text-align:center;line-height:1.6;color:#c9c3b5}.realhint b{color:#d59b3a}.realhint span{font-size:12px;color:#8d918b}
+.map:before{content:"";position:absolute;inset:8%;border:1px solid #514a3d;box-shadow:0 0 70px #000 inset}.realweb{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#111}.realhint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:420px;padding:22px;background:rgba(5,8,9,.92);border:1px solid #4b412e;text-align:center;line-height:1.6;color:#c9c3b5}.realhint b{color:#d59b3a}.realhint span{font-size:12px;color:#8d918b}
 .terrain{position:absolute;left:15%;top:20%;width:68%;height:55%;border:2px solid #6d6759;transform:rotate(-7deg);opacity:.55}
 .terrain:before,.terrain:after{content:"";position:absolute;border:1px solid #6d6759}.terrain:before{left:12%;top:18%;width:35%;height:55%}.terrain:after{right:8%;bottom:12%;width:28%;height:30%}
 .gridlabel{position:absolute;color:#766f61;font:11px monospace}.tl{top:12px;left:15px}.tr{top:12px;right:15px}.bl{bottom:12px;left:15px}.br{bottom:12px;right:15px}
@@ -34,6 +34,7 @@ radial-gradient(circle at 50% 45%,#20282a,#0b0f11 70%);background-size:48px 48px
 </header>
 <div class="layout">
 <main class="map" id="mapview">
+  <webview id="realweb" class="realweb" partition="persist:tarkovhud" allowpopups></webview>
   <div class="realhint"><b>MAPA REAL</b><br>Carrega em <b>🗺️ Abrir mapa real</b> para mostrar o mapa real dentro da própria aplicação.
   <br><span>Depois de ligares o mapa, cada screenshot nativa do EFT envia X/Y/Z + direção para o marcador no mapa.</span></div>
   <div class="hud">POSIÇÃO <b id="pos">X 000.0 · Y 000.0 · Z 000.0</b><br>RUMO <b id="bearing">000°</b><br>ATUALIZAÇÃO <span id="updated">--:--:--</span></div>
@@ -61,6 +62,15 @@ radial-gradient(circle at 50% 45%,#20282a,#0b0f11 70%);background-size:48px 48px
 const maps=["Customs","Factory","Interchange","Labs","Lighthouse","Reserve","Shoreline","Streets of Tarkov","Woods","Ground Zero","Terminal","Labyrinth"];
 const sel=document.getElementById('map'); maps.forEach(m=>{let o=document.createElement('option');o.textContent=m;sel.appendChild(o)});
 sel.onchange=()=>document.getElementById('mapname').textContent=sel.value;
+window.tarkov.onShowRealMap(url=>{
+  const w=document.getElementById('realweb');
+  w.style.display='block';
+  document.querySelector('.realhint').style.display='none';
+  w.src=url;
+  document.getElementById('status').textContent='● A CARREGAR MAPA REAL';
+  w.addEventListener('did-finish-load',()=>document.getElementById('status').textContent='● MAPA REAL CARREGADO',{once:true});
+});
+
 document.getElementById('folder').onclick=async()=>{const p=await window.tarkov.pickFolder(); document.getElementById('status').textContent='● A MONITORIZAR · '+p};
 document.getElementById('center').onclick=()=>{document.getElementById('player').style.left='52%';document.getElementById('player').style.top='48%'};
 document.getElementById('realmap').onclick=()=>window.tarkov.openMap(sel.value);

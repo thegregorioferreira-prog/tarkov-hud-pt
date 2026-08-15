@@ -12,3 +12,7 @@ Companion pessoal em português. Esta versão usa screenshots nativas do EFT par
 7. A app mantém no máximo 7 screenshots.
 
 A app não envia teclas automaticamente para o Tarkov nesta versão.
+
+
+## v1.1.0
+The real tarkov.dev map is embedded directly in the Electron window using a WebView, instead of BrowserView.
