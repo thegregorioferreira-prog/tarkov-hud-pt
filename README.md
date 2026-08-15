@@ -1,34 +1,22 @@
-# Tarkov HUD PT
+# Tarkov HUD PT v2
 
-Companion desktop para Escape from Tarkov, em português, com interface tática tipo GPS/HUD.
+Versão 2 do companion de Escape from Tarkov.
 
-## O que esta versão já faz
-- Interface desktop Windows via Electron.
-- Seleção dos principais mapas.
-- Monitorização automática da pasta de screenshots.
-- Atualização visual da posição a partir de coordenadas presentes no nome do screenshot.
-- HUD com X/Y/Z e rumo.
-- Painel de squad e camadas.
-- Código preparado para receber o módulo de mapas reais e sincronização online.
+## Incluído
+- Mapas SVG reais dos mapas suportados.
+- Zoom e pan.
+- Extrações reais carregadas dos dados comunitários.
+- HUD/overlay sempre no topo.
+- Base de tracking por screenshots e coordenadas.
+- Interface em português.
+- Camadas para extrações, bosses, spawns, quests e hazards.
+- Build Windows via GitHub Actions.
 
-## Importante sobre "tempo real"
-O método seguro é trabalhar com dados externos ao processo do jogo, como screenshots. Ferramentas comunitárias existentes usam precisamente este modelo para geolocalização e overlay, em vez de ler memória do jogo.
+## Fontes de dados
+Esta versão usa os mapas e dados comunitários do projeto Sayser/TarkovTracker e do ecossistema tarkov.dev. Consulte as licenças dos projetos antes de redistribuir a aplicação.
 
-## Criar o instalador Windows
-Requer Node.js 20+.
+## Limitação atual
+O parser automático de screenshots e a sincronização online de squad ainda são módulos em evolução. A aplicação não lê a memória do jogo.
 
-    npm install
-    npm run dist:win
-
-O instalador será criado em `dist/`.
-
-## Próxima fase
-Para uma versão final distribuível, falta ligar:
-1. mapas SVG reais e dados de POI;
-2. parser robusto do formato de screenshots atual do EFT;
-3. overlay sempre-no-top;
-4. backend de squad (WebSocket/Supabase);
-5. ícones/markers de extrações, bosses, quests e perigos;
-6. atualizador automático.
-
-Os dados de mapas podem ser alimentados por projetos comunitários como tarkov.dev/tarkovdata.
+## Compilar
+No GitHub: Actions → Criar instalador Windows → Run workflow.

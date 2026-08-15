@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('tarkov', {
-  pickFolder: () => ipcRenderer.invoke('pick-folder'),
-  getFolder: () => ipcRenderer.invoke('get-folder'),
-  onNewScreenshot: (cb) => ipcRenderer.on('new-screenshot', (_, data) => cb(data))
+  openOverlay: () => ipcRenderer.send('open-overlay'),
+  closeOverlay: () => ipcRenderer.send('close-overlay'),
+  syncState: (state) => ipcRenderer.send('overlay-state', state),
+  onSyncState: (cb) => ipcRenderer.on('sync-state', (_, data) => cb(data))
 });
