@@ -1,12 +1,22 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { execFile } = require('child_process');
+const WebSocket = require('ws');
 
 let win;
+let mapWin;
 let watcherTimer = null;
-let autoTimer = null;
 let screenshotDir;
+let remoteId = '';
+let socket = null;
+let lastPosition = null;
+
+const MAPS = {
+  'Customs':'customs', 'Factory':'factory', 'Interchange':'interchange', 'Labs':'the-lab',
+  'Lighthouse':'lighthouse', 'Reserve':'reserve', 'Shoreline':'shoreline',
+  'Streets of Tarkov':'streets-of-tarkov', 'Woods':'woods', 'Ground Zero':'ground-zero',
+  'Terminal':'terminal', 'Labyrinth':'the-labyrinth'
+};
 
 function defaultScreenshotDir() {
   const home = app.getPath('home');
@@ -26,6 +36,25 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false }
   });
   win.loadFile(path.join(__dirname, 'index.html'));
+  win.on('closed', () => { win = null; if (mapWin && !mapWin.isDestroyed()) mapWin.close(); });
+}
+
+function openRealMap(mapName) {
+  const slug = MAPS[mapName] || 'customs';
+  const url = `https://tarkov.dev/map/${slug}`;
+  if (mapWin && !mapWin.isDestroyed()) {
+    mapWin.loadURL(url);
+    mapWin.focus();
+    return;
+  }
+  mapWin = new BrowserWindow({
+    width: 1600, height: 1000, minWidth: 1000, minHeight: 700,
+    backgroundColor: '#101314',
+    title: `Tarkov HUD PT — Mapa ${mapName}`,
+    webPreferences: { contextIsolation: true, nodeIntegration: false }
+  });
+  mapWin.loadURL(url);
+  mapWin.on('closed', () => { mapWin = null; });
 }
 
 function listScreenshots() {
@@ -44,13 +73,46 @@ function cleanupOldScreenshots() {
   }
 }
 
-function sendF9() {
-  // Windows only. Sends F9 to the foreground application so EFT can create
-  // its native screenshot (and therefore its coordinate-bearing filename).
-  if (process.platform !== 'win32') return false;
-  const ps = `Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class K { [DllImport("user32.dll")] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo); }'; [K]::keybd_event(0x78,0,0,[UIntPtr]::Zero); Start-Sleep -Milliseconds 40; [K]::keybd_event(0x78,0,2,[UIntPtr]::Zero)`;
-  execFile('powershell.exe', ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-Command', ps], {windowsHide:true}, () => {});
+function connectRemote() {
+  if (!remoteId) return false;
+  if (socket && socket.readyState === WebSocket.OPEN) return true;
+  try {
+    socket = new WebSocket(`wss://socket.tarkov.dev?sessionid=${encodeURIComponent(remoteId)}-tm`, {
+      headers: { 'User-Agent': 'Tarkov-HUD-PT/0.9.0' }
+    });
+    socket.on('open', () => {
+      if (win && !win.isDestroyed()) win.webContents.send('remote-status', 'MAPA REAL CONECTADO');
+      if (lastPosition) sendPlayerPosition(lastPosition);
+    });
+    socket.on('message', data => {
+      try { const msg = JSON.parse(data.toString()); if (msg.type === 'ping') socket.send(JSON.stringify({type:'pong'})); } catch {}
+    });
+    socket.on('close', () => { if (win && !win.isDestroyed()) win.webContents.send('remote-status', 'MAPA REAL DESLIGADO'); socket = null; });
+    socket.on('error', () => { if (win && !win.isDestroyed()) win.webContents.send('remote-status', 'ERRO NA LIGAÇÃO DO MAPA'); });
+    return true;
+  } catch { return false; }
+}
+
+function sendCommand(data) {
+  if (!connectRemote()) return false;
+  if (!socket || socket.readyState !== WebSocket.OPEN) return false;
+  socket.send(JSON.stringify({ type:'command', data, sessionID:remoteId }));
   return true;
+}
+
+function sendMap(mapName) {
+  return sendCommand({ type:'map', value: MAPS[mapName] || 'customs' });
+}
+
+function sendPlayerPosition(p) {
+  lastPosition = p;
+  const ok = sendCommand({
+    type:'playerPosition',
+    map: MAPS[p.mapName] || 'customs',
+    position:{ x:p.x, y:p.y, z:p.z },
+    rotation:p.bearing
+  });
+  return ok;
 }
 
 ipcMain.handle('pick-folder', async () => {
@@ -63,40 +125,57 @@ ipcMain.handle('pick-folder', async () => {
   return screenshotDir;
 });
 ipcMain.handle('get-folder', () => screenshotDir);
-ipcMain.handle('set-auto', (_, enabled, intervalMs) => {
-  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
-  if (enabled) {
-    const ms = Math.max(1000, Math.min(30000, Number(intervalMs) || 2000));
-    autoTimer = setInterval(() => sendF9(), ms);
-    sendF9();
-  }
-  return !!enabled;
-});
 ipcMain.handle('cleanup-now', () => { cleanupOldScreenshots(); return listScreenshots().length; });
-ipcMain.handle('open-map', async (_, map) => {
-  const urls = {
-    'Customs':'https://tarkov.dev/map/customs', 'Factory':'https://tarkov.dev/map/factory', 'Interchange':'https://tarkov.dev/map/interchange',
-    'Labs':'https://tarkov.dev/map/labs', 'Lighthouse':'https://tarkov.dev/map/lighthouse', 'Reserve':'https://tarkov.dev/map/reserve',
-    'Shoreline':'https://tarkov.dev/map/shoreline', 'Streets of Tarkov':'https://tarkov.dev/map/streets', 'Woods':'https://tarkov.dev/map/woods',
-    'Ground Zero':'https://tarkov.dev/map/ground-zero', 'Terminal':'https://tarkov.dev/map/terminal', 'Labyrinth':'https://tarkov.dev/map/labyrinth'
-  };
-  const mw=new BrowserWindow({width:1500,height:950,backgroundColor:'#080b0d',webPreferences:{contextIsolation:true}});
-  await mw.loadURL(urls[map] || urls.Customs);
+ipcMain.handle('open-map', (_, map) => { openRealMap(map); return true; });
+ipcMain.handle('set-remote-id', (_, id) => {
+  remoteId = String(id || '').trim();
+  if (socket) { try { socket.close(); } catch {} socket = null; }
+  const ok = connectRemote();
+  return ok;
 });
+ipcMain.handle('get-remote-id', () => remoteId);
+ipcMain.handle('map-select', (_, map) => sendMap(map));
+
+function parseEftScreenshot(file) {
+  const base=file.replace(/\\/g,'/').split('/').pop();
+  // Native EFT screenshot names encode position and quaternion. Keep a few tolerant variants.
+  const patterns = [
+    /\]_\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*_\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*_/,
+    /_(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)_(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)_/
+  ];
+  let m=null; for(const re of patterns){ m=base.match(re); if(m) break; }
+  if(!m) return null;
+  const x=Number(m[1]), y=Number(m[2]), z=Number(m[3]);
+  const qx=Number(m[4]), qy=Number(m[5]), qz=Number(m[6]), qw=Number(m[7]);
+  const siny=2*(qw*qy+qx*qz), cosy=1-2*(qy*qy+qz*qz);
+  const bearing=(Math.atan2(siny,cosy)*180/Math.PI+360)%360;
+  return {x,y,z,bearing};
+}
 
 app.whenReady().then(() => {
   screenshotDir = defaultScreenshotDir();
-  fs.mkdirSync(screenshotDir, {recursive: true});
+  fs.mkdirSync(screenshotDir, {recursive:true});
   createWindow();
   let last = '';
   watcherTimer = setInterval(() => {
     if (!win || win.isDestroyed()) return;
-    const files = listScreenshots();
-    if (files.length && files[0].x !== last) {
-      last = files[0].x;
-      win.webContents.send('new-screenshot', {file: files[0].x, fullPath: path.join(screenshotDir, files[0].x)});
+    const files=listScreenshots();
+    if(files.length && files[0].x!==last){
+      last=files[0].x;
+      const p=parseEftScreenshot(files[0].x);
+      if(p){
+        p.mapName = win.webContents.executeJavaScript('document.getElementById("map")?.value || "Customs"').catch(()=> 'Customs');
+        // Resolve the Promise without blocking the file watcher.
+        Promise.resolve(p.mapName).then(mapName => {
+          p.mapName = mapName || 'Customs';
+          sendPlayerPosition(p);
+          win.webContents.send('new-screenshot',{file:files[0].x,fullPath:path.join(screenshotDir,files[0].x),position:p});
+        });
+      } else {
+        win.webContents.send('new-screenshot',{file:files[0].x,fullPath:path.join(screenshotDir,files[0].x)});
+      }
       cleanupOldScreenshots();
     }
-  }, 500);
+  },500);
 });
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('window-all-closed',()=>{ if(socket){try{socket.close()}catch{}} if(process.platform!=='darwin') app.quit(); });

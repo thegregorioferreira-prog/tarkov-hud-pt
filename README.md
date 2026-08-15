@@ -1,37 +1,14 @@
-# Tarkov HUD PT
+# Tarkov HUD PT 0.9.0
 
-Companion desktop para Escape from Tarkov, em português, com interface tática tipo GPS/HUD.
+Companion pessoal em português. Esta versão usa screenshots nativas do EFT para obter X/Y/Z e rotação e envia esses dados para o mapa real do tarkov.dev através do mecanismo de remote control documentado pelo TarkovMonitor.
 
-## O que esta versão já faz
-- Interface desktop Windows via Electron.
-- Seleção dos principais mapas.
-- Monitorização automática da pasta de screenshots.
-- Atualização visual da posição a partir de coordenadas presentes no nome do screenshot.
-- HUD com X/Y/Z e rumo.
-- Painel de squad e camadas.
-- Código preparado para receber o módulo de mapas reais e sincronização online.
+## Utilização
+1. Abra a app e clique em **🗺️ Mapa real**.
+2. No tarkov.dev, clique em **Click to connect** e copie o **ID for remote control**.
+3. Cole o ID em **MAPA REAL / REMOTE** e clique **Ligar**.
+4. Selecione o mapa correto.
+5. Faça screenshots com a tecla nativa do EFT (no seu caso, F9).
+6. A app lê a screenshot, obtém X/Y/Z + direção e envia a posição para o mapa.
+7. A app mantém no máximo 7 screenshots.
 
-## Importante sobre "tempo real"
-O método seguro é trabalhar com dados externos ao processo do jogo, como screenshots. Ferramentas comunitárias existentes usam precisamente este modelo para geolocalização e overlay, em vez de ler memória do jogo.
-
-## Criar o instalador Windows
-Requer Node.js 20+.
-
-    npm install
-    npm run dist:win
-
-O instalador será criado em `dist/`.
-
-## Próxima fase
-Para uma versão final distribuível, falta ligar:
-1. mapas SVG reais e dados de POI;
-2. parser robusto do formato de screenshots atual do EFT;
-3. overlay sempre-no-top;
-4. backend de squad (WebSocket/Supabase);
-5. ícones/markers de extrações, bosses, quests e perigos;
-6. atualizador automático.
-
-Os dados de mapas podem ser alimentados por projetos comunitários como tarkov.dev/tarkovdata.
-
-## Automático
-A versão 0.8.0 pode enviar F9 para a aplicação em primeiro plano em intervalos de 2 segundos e manter apenas as 7 screenshots mais recentes. Use o Auto F9 apenas com o Tarkov focado.
+A app não envia teclas automaticamente para o Tarkov nesta versão.
