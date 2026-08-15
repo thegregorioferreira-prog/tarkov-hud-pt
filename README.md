@@ -32,3 +32,6 @@ Para uma versão final distribuível, falta ligar:
 6. atualizador automático.
 
 Os dados de mapas podem ser alimentados por projetos comunitários como tarkov.dev/tarkovdata.
+
+## Automático
+A versão 0.8.0 pode enviar F9 para a aplicação em primeiro plano em intervalos de 2 segundos e manter apenas as 7 screenshots mais recentes. Use o Auto F9 apenas com o Tarkov focado.
